@@ -24,7 +24,7 @@ async def pagination(skip: int = Query(0, ge=0), limit: int = Query(10, ge=0)) -
 
 
 async def get_post_or_404(id: int, session: AsyncSession = Depends(get_async_session)) -> Post:
-    select_query = select(Post).options(selectinload(Post.comments)).where(Post.id == id)
+    select_query = select(Post).where(Post.id == id)
     result = await session.execute(select_query)
     post = result.scalar_one_or_none()
     if post is None:
@@ -35,7 +35,7 @@ async def get_post_or_404(id: int, session: AsyncSession = Depends(get_async_ses
 @app.get("/posts", response_model=list[schemas.PostRead])
 async def list_posts(pagination: tuple[int, int] = Depends(pagination), session: AsyncSession = Depends(get_async_session)) -> Sequence[Post]:
     skip, limit = pagination
-    select_query = select(Post).options(selectinload(Post.comments)).offset(skip).limit(limit)
+    select_query = select(Post).offset(skip).limit(limit)
     result = await session.execute(select_query)
     return result.scalars().all()
 
@@ -47,7 +47,7 @@ async def get_post(post: Post = Depends(get_post_or_404)) -> Post:
 
 @app.post("/posts", response_model=schemas.PostRead, status_code=status.HTTP_201_CREATED)
 async def create_post(post_create: schemas.PostCreate, session: AsyncSession = Depends(get_async_session)) -> Post:
-    post = Post(**post_create.dict(), comments=[])
+    post = Post(**post_create.dict())
     session.add(post)
     await session.commit()
     return post
