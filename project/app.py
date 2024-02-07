@@ -1,9 +1,9 @@
 import contextlib
 from fastapi import FastAPI, status, Depends, Query, HTTPException
-from .database import create_all_tables, get_async_session
-from . import schemas
+from project.database import create_all_tables, get_async_session
+from project import schemas
 from sqlalchemy.ext.asyncio import AsyncSession
-from .models import Post, Comment
+from project.models import Post
 from collections.abc import Sequence
 from sqlalchemy import select
 from sqlalchemy.orm import selectinload
@@ -67,11 +67,3 @@ async def update_post(post_update: schemas.PostPartialUpdate, post: Post = Depen
 async def delete_post(post: Post = Depends(get_post_or_404), session: AsyncSession = Depends(get_async_session)):
     await session.delete(post)
     await session.commit()
-
-
-@app.post("/posts/{id}/comments", response_model=schemas.CommentRead, status_code=status.HTTP_201_CREATED)
-async def create_comment(comment_create: schemas.CommentCreate, post: Post = Depends(get_post_or_404), session: AsyncSession = Depends(get_async_session)) -> Comment:
-    comment = Comment(**comment_create.dict(), post=post)
-    session.add(comment)
-    await session.commit()
-    return comment

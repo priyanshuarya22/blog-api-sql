@@ -4,7 +4,8 @@ from sqlalchemy import engine_from_config
 from sqlalchemy import pool
 
 from alembic import context
-from models import Base
+from project.models import Base
+from project.settings import settings
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
@@ -25,6 +26,9 @@ target_metadata = Base.metadata
 # can be acquired:
 # my_important_option = config.get_main_option("my_important_option")
 # ... etc.
+config.set_main_option(
+    "sqlalchemy.url", settings.database_url.replace("+aiosqlite", "")
+)
 
 
 def run_migrations_offline() -> None:
